@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Карта свідомості — 7 рівнів (дерево/формули/тренування)</title>
+  <style>
+    :root{
+      --bg0:#070A12;
+      --bg1:#0B1324;
+      --card:rgba(255,255,255,.06);
+      --card2:rgba(255,255,255,.09);
+      --stroke:rgba(255,255,255,.14);
+      --text:#EAF0FF;
+      --muted:rgba(234,240,255,.72);
+
+      --c1:#4CC9F0; /* усвідом */
+      --c2:#B5179E; /* аналіз */
+      --c3:#80ED99; /* дія */
+      --c4:#FFD166; /* перевірка/закріплення */
+      --c5:#F72585; /* ризики */
+      --shadow: 0 18px 50px rgba(0,0,0,.55);
+      --r:18px;
+      --pad:18px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% 0%, rgba(76,201,240,.18), transparent 60%),
+        radial-gradient(900px 600px at 90% 10%, rgba(181,23,158,.18), transparent 60%),
+        radial-gradient(900px 700px at 50% 100%, rgba(128,237,153,.14), transparent 65%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      padding: 28px 16px 60px;
+    }
+
+    .wrap{max-width:1100px;margin:0 auto}
+    header{
+      display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;
+      margin: 6px 0 18px;
+    }
+    h1{
+      margin:0;
+      letter-spacing:.2px;
+      font-size: clamp(22px, 3vw, 34px);
+      line-height:1.1;
+    }
+    .sub{
+      margin:0;
+      color:var(--muted);
+      font-size: 14px;
+      max-width: 72ch;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.25fr .85fr;
+      gap:16px;
+      align-items:start;
+      margin-top:14px;
+    }
+    @media (max-width: 920px){
+      .grid{grid-template-columns:1fr}
+    }
+
+    .card{
+      background: var(--card);
+      border:1px solid var(--stroke);
+      border-radius: var(--r);
+      padding: var(--pad);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+    .card h2{
+      margin:0 0 10px;
+      font-size: 16px;
+      letter-spacing:.2px;
+    }
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:12px; color:var(--muted);
+      padding:6px 10px;
+      border-radius: 999px;
+      border:1px solid var(--stroke);
+      background: rgba(0,0,0,.12);
+    }
+    .dots{
+      display:inline-flex; gap:6px; align-items:center;
+    }
+    .dot{width:10px;height:10px;border-radius:999px;display:inline-block}
+    .dot.c1{background:var(--c1)}
+    .dot.c2{background:var(--c2)}
+    .dot.c3{background:var(--c3)}
+    .dot.c4{background:var(--c4)}
+
+    /* MAP */
+    .map{
+      position:relative;
+      overflow:hidden;
+    }
+    .mapTop{
+      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      margin-bottom: 12px;
+    }
+    .legend{
+      display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+    }
+    .legend .pill{
+      display:inline-flex; gap:8px; align-items:center;
+      font-size:12px; color:var(--muted);
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.03);
+    }
+
+    .steps{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .step{
+      position:relative;
+      padding: 12px 12px 12px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.03);
+      display:flex; gap:12px; align-items:flex-start;
+    }
+    .step::before{
+      content:"";
+      width:10px; height:100%;
+      position:absolute; left:0; top:0;
+      border-radius: 14px 0 0 14px;
+      opacity:.95;
+    }
+    .step.c1::before{background: linear-gradient(180deg, var(--c1), rgba(76,201,240,.15))}
+    .step.c2::before{background: linear-gradient(180deg, var(--c2), rgba(181,23,158,.15))}
+    .step.c3::before{background: linear-gradient(180deg, var(--c3), rgba(128,237,153,.15))}
+    .step.c4::before{background: linear-gradient(180deg, var(--c4), rgba(255,209,102,.15))}
+
+    .num{
+      min-width: 34px; height:34px;
+      border-radius: 12px;
+      display:grid; place-items:center;
+      border:1px solid var(--stroke);
+      background: rgba(0,0,0,.18);
+      color:var(--text);
+      font-weight:700;
+      margin-left: 2px;
+    }
+    .stepTitle{font-weight:700; margin:0 0 2px; font-size:14px}
+    .stepText{margin:0; color:var(--muted); font-size:13px; line-height:1.35}
+    .micro{
+      margin-top: 6px;
+      display:flex; gap:8px; flex-wrap:wrap;
+    }
+    .chip{
+      font-size:12px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border:1px solid var(--stroke);
+      background: rgba(0,0,0,.12);
+      color: rgba(234,240,255,.82);
+    }
+
+    /* TREE */
+    .tree{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .treeRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 680px){
+      .treeRow{grid-template-columns:1fr}
+    }
+    .node{
+      border:1px solid var(--stroke);
+      border-radius: 16px;
+      padding: 12px;
+      background: rgba(255,255,255,.03);
+      position:relative;
+    }
+    .node h3{margin:0 0 6px; font-size:14px}
+    .node p{margin:0; color:var(--muted); font-size:13px; line-height:1.35}
+    .nodeTag{
+      font-size:11px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      color:var(--muted);
+      display:inline-flex;
+      margin-bottom:8px;
+      background: rgba(0,0,0,.12);
+    }
+    .node.fact{border-color: rgba(76,201,240,.35)}
+    .node.emotion{border-color: rgba(181,23,158,.35)}
+    .node.sense{border-color: rgba(255,209,102,.35)}
+    .node.action{border-color: rgba(128,237,153,.35)}
+
+    /* FORMULAS */
+    .formula{
+      display:grid;
+      gap:10px;
+      margin-top: 10px;
+    }
+    .kpi{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 520px){ .kpi{grid-template-columns:1fr} }
+
+    .box{
+      border:1px solid var(--stroke);
+      border-radius: 16px;
+      padding: 12px;
+      background: rgba(255,255,255,.03);
+    }
+    .box h3{margin:0 0 6px; font-size:14px}
+    code{
+      display:block;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: rgba(0,0,0,.20);
+      border:1px solid var(--stroke);
+      padding: 10px 11px;
+      border-radius: 12px;
+      color: rgba(234,240,255,.92);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 12.5px;
+      line-height: 1.35;
+      margin: 8px 0 0;
+    }
+
+    /* PRACTICE */
+    .practice{
+      display:grid;
+      gap:10px;
+      margin-top:10px;
+    }
+    details{
+      border:1px solid var(--stroke);
+      border-radius: 16px;
+      background: rgba(255,255,255,.03);
+      padding: 10px 12px;
+    }
+    summary{
+      cursor:pointer;
+      list-style:none;
+      font-weight:700;
+      margin: 2px 0;
+    }
+    summary::-webkit-details-marker{display:none}
+    .hint{color:var(--muted); font-size:13px; margin: 8px 0 0; line-height: 1.4}
+    .list{margin:8px 0 0; padding-left: 18px; color: rgba(234,240,255,.86); font-size:13px; line-height:1.45}
+    .list li{margin:6px 0}
+
+    /* PRINT */
+    .printNote{
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    @media print{
+      body{background:white;color:#111;padding:0}
+      .card{box-shadow:none; background:white; border-color:#D6D6D6}
+      .chip,.pill,.badge,.nodeTag{border-color:#D6D6D6;background:white;color:#333}
+      .step,.node,.box,details{background:white;border-color:#D6D6D6}
+      code{background:#F6F6F6;border-color:#D6D6D6;color:#111}
+      .sub,.muted,.hint{color:#333}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Карта свідомості: 7 рівнів розуміння і дії</h1>
+        <p class="sub">
+          Візуальна схема для швидкого засвоєння: цикл (7 кроків), дерево розбору ситуації, формули прогнозу та щоденне тренування.
+          Працює як “алгоритм мислення”: знижує хаос, підсилює контроль і дає прогноз наслідків.
+        </p>
+      </div>
+      <div class="badge">
+        <span class="dots">
+          <span class="dot c1"></span><span class="dot c2"></span><span class="dot c3"></span><span class="dot c4"></span>
+        </span>
+        <span>Можна відкрити у Word або браузері • Друк: Ctrl+P</span>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: MAIN MAP -->
+      <section class="card map">
+        <div class="mapTop">
+          <h2 style="margin:0">1) Головний цикл (те, що робиш завжди)</h2>
+          <div class="legend">
+            <span class="pill"><span class="dot c1"></span> Усвідомлення</span>
+            <span class="pill"><span class="dot c2"></span> Аналіз</span>
+            <span class="pill"><span class="dot c3"></span> Дія</span>
+            <span class="pill"><span class="dot c4"></span> Перевірка/Закріплення</span>
+          </div>
+        </div>
+
+        <div class="steps">
+          <div class="step c1">
+            <div class="num">1</div>
+            <div>
+              <p class="stepTitle">УСВІДОМ (факт без оцінки)</p>
+              <p class="stepText">Назви подію як камеру: що сталося, без “добре/погано”.</p>
+              <div class="micro">
+                <span class="chip">Фраза: “Факт — …”</span>
+                <span class="chip">Пауза 2 сек</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="step c1">
+            <div class="num">2</div>
+            <div>
+              <p class="stepTitle">ПРИЙМИ (не сперечайся з реальністю)</p>
+              <p class="stepText">Не витрачай енергію на заперечення. Прийняття ≠ згода. Це старт контролю.</p>
+              <div class="micro">
+                <span class="chip">“Так є. Далі — що роблю?”</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="step c2">
+            <div class="num">3</div>
+            <div>
+              <p class="stepTitle">АНАЛІЗ (3 шари)</p>
+              <p class="stepText">Розділи: факт → емоція → сенс. Це прибирає імпульс і дає ясність.</p>
+              <div class="micro">
+                <span class="chip">Факт</span><span class="chip">Емоція</span><span class="chip">Сенс</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="step c2">
+            <div class="num">4</div>
+            <div>
+              <p class="stepTitle">ПЕРЕФОРМУЛЮЙ (кут бачення)</p>
+              <p class="stepText">Знайди інтерпретацію, яка дає силу і контроль (без самообману).</p>
+              <div class="micro">
+                <span class="chip">“Який найточніший кут?”</span>
+                <span class="chip">“Що під моїм контролем?”</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="step c3">
+            <div class="num">5</div>
+            <div>
+              <p class="stepTitle">ДІЙ (один точний крок)</p>
+              <p class="stepText">Вибери 1 дію мінімального ризику і максимуму користі. Малий крок, але точний.</p>
+              <div class="micro">
+                <span class="chip">“1 дія зараз”</span>
+                <span class="chip">Лаконічно</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="step c4">
+            <div class="num">6</div>
+            <div>
+              <p class="stepTitle">ОЦІНИ (факт результату)</p>
+              <p class="stepText">Що змінилося? Що стало краще/гірше? Без драм — тільки замір.</p>
+              <div class="micro">
+                <span class="chip">“Результат = …”</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="step c4">
+            <div class="num">7</div>
+            <div>
+              <p class="stepTitle">ЗАКРІПИ (правило на майбутнє)</p>
+              <p class="stepText">Перетвори досвід у правило “якщо → тоді”. Це створює автоматизм.</p>
+              <div class="micro">
+                <span class="chip">IF → THEN</span>
+                <span class="chip">Нова норма</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="printNote">Порада: для тренування достатньо проходити цикл 1 раз на день на будь-якій ситуації.</p>
+      </section>
+
+      <!-- RIGHT: TREE + FORMULAS + PRACTICE -->
+      <aside class="card">
+        <h2>2) Дерево розбору (щоб не плутати емоцію з фактом)</h2>
+
+        <div class="tree">
+          <div class="node action">
+            <span class="nodeTag">Старт</span>
+            <h3>СИТУАЦІЯ</h3>
+            <p>Одна фраза: “Сталося X”. Без оцінок.</p>
+          </div>
+
+          <div class="treeRow">
+            <div class="node fact">
+              <span class="nodeTag">Факт</span>
+              <h3>ЩО (об’єктивно)</h3>
+              <p>Що бачу/чую/вимірюю? Без “він поганий”.</p>
+            </div>
+            <div class="node emotion">
+              <span class="nodeTag">Емоція</span>
+              <h3>ЩО ВІДЧУВАЮ</h3>
+              <p>Злість/сум/страх/образа — назвати словом.</p>
+            </div>
+            <div class="node sense">
+              <span class="nodeTag">Сенс</span>
+              <h3>ЩО ЦЕ ОЗНАЧАЄ</h3>
+              <p>Який зміст? Яку межу зачепило? Який урок?</p>
+            </div>
+          </div>
+
+          <div class="node action">
+            <span class="nodeTag">Вихід</span>
+            <h3>ДІЯ</h3>
+            <p>Одна точна дія зараз + правило на майбутнє.</p>
+          </div>
+        </div>
+
+        <div style="height:14px"></div>
+
+        <h2>3) Формули (для прогнозу і контролю)</h2>
+        <div class="formula">
+          <div class="box">
+            <h3>Формула рішення</h3>
+            <code>Рішення = Факт + (Контроль / Неконтроль) + 1 дія</code>
+          </div>
+          <div class="box">
+            <h3>Ланцюг прогнозу (“ймовірність наслідків”)</h3>
+            <code>Думка → Намір → Дія → Реакція → Наслідок → Урок → Новий шаблон</code>
+          </div>
+          <div class="kpi">
+            <div class="box">
+              <h3>Шаблон правила</h3>
+              <code>Якщо (умова) → Тоді (моя дія) → Очікуваний результат</code>
+            </div>
+            <div class="box">
+              <h3>Швидкий стоп від імпульсу</h3>
+              <code>Пауза 2 сек → “Факт” → “1 дія”</code>
+            </div>
+          </div>
+        </div>
+
+        <div style="height:14px"></div>
+
+        <h2>4) Тренування (вбудовано)</h2>
+        <div class="practice">
+          <details open>
+            <summary>Вправа 1 (2 хвилини): “Факт без оцінки”</summary>
+            <p class="hint">Мета: відключити автоматичний негатив/злість і включити ясність.</p>
+            <ul class="list">
+              <li>Запиши 1 ситуацію за день одним реченням (без “він/вона …”).</li>
+              <li>Додай: “Факт — …”.</li>
+              <li>Додай: “Моя 1 дія — …”.</li>
+            </ul>
+          </details>
+
+          <details>
+            <summary>Вправа 2 (3 хвилини): “3 шари”</summary>
+            <p class="hint">Мета: не плутати реакцію з реальністю.</p>
+            <ul class="list">
+              <li>Факт: що сталося?</li>
+              <li>Емоція: що відчуваю (1 слово)?</li>
+              <li>Сенс: яку межу зачепило/який урок?</li>
+              <li>1 дія: що зроблю без шкоди собі?</li>
+            </ul>
+          </details>
+
+          <details>
+            <summary>Вправа 3 (5 хвилин): “IF → THEN” (створення автоматизму)</summary>
+            <p class="hint">Мета: зробити сильну поведінку автоматичною.</p>
+            <ul class="list">
+              <li>Вибери повторювану ситуацію (конфлікт / тиск / маніпуляція / неповага).</li>
+              <li>Склади 1 правило: “Якщо … → тоді …”.</li>
+              <li>Перевір 3 рази протягом тижня та уточни формулювання.</li>
+            </ul>
+          </details>
+        </div>
+      </aside>
+    </div>
+
+    <div style="height:16px"></div>
+
+    <!-- FOOTER: ONE-PAGE CHECKLIST -->
+    <section class="card">
+      <h2>5) Лист “на один погляд” (для більшості людей — найпростіше)</h2>
+      <div class="kpi">
+        <div class="box">
+          <h3>Коли важко / конфлікт / тиск</h3>
+          <code>Пауза 2 сек
+Факт: …
+Емоція: …
+Сенс: …
+1 дія: …
+Результат: …
+IF→THEN: …</code>
+        </div>
+        <div class="box">
+          <h3>Критерій “правильної дії”</h3>
+          <code>Дія правильна, якщо:
+1) не руйнує мене
+2) не робить зло іншим
+3) дає контроль над наслідком
+4) зберігає справедливість і ясність</code>
+        </div>
+      </div>
+      <p class="printNote">Це можна роздрукувати як “шпаргалку”: Word → Файл → Друк.</p>
+    </section>
+  </div>
+</body>
+</html>
